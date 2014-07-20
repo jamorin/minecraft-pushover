@@ -1,0 +1,11 @@
+# Pushover config
+export PUSHOVER_APPTOKEN=
+export PUSHOVER_USERTOKEN=
+export PUSHOVER_SOUND=gamelan
+# User to run as instead of root
+USERNAME=minecraft
+# Minecraft config
+export MINECRAFT_USER=jamorin
+# Users to disable sound or disable the push notification
+export IGNORE_LIST="notch|jeb_"
+MINECRAFT_LOG=/home/$USERNAME/minecraft/logs/latest.log

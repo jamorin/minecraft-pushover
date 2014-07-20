@@ -1,0 +1,39 @@
+# Configuration
+perlcode 0 my $user = $ENV{"MINECRAFT_USER"};
+perlcode 0 my $ignore = $ENV{"IGNORE_LIST"};
+perlcode 0 my $script = $ENV{"PUSHOVER_SCRIPT"};
+perlcode 0 my $loggedIn = 0;
+
+# Default values if these values are in ENV
+perlocde 0 $user = ":" if ($user =~ /^\s*$/);
+perlcode 0 $ignore = ":" if ($ignore =~ /^\s*$/);
+perlcode 0 $script = "echo \"Pushover script not found\"" if ($script =~ /^\s*$/);
+
+# Stanzas
+
+# watchfor your username, disable push notification if your logged in
+watchfor /INFO]: $user\[.*logged in/
+perlcode 2 $loggedIn = 1;
+exec $script "$user logged in" -1 $loggedIn
+threshold track_by=$1, type=limit, count=1, seconds=300
+
+# watchfor your username, enable push notifications
+watchfor /$user left the game/
+perlcode 2 $loggedIn = 0;
+exec $script "$user logged out" -1 $loggedIn
+threshold track_by=$1, type=limit, count=1, seconds=300
+
+# watchfor players that I don't care for, send the to pushover app
+watchfor /INFO]: ($ignore)\[.*logged in/
+exec $script "$1 logged in" -1 $loggedIn
+threshold track_by=$1, type=limit, count=1, seconds=300
+
+# watchfor players with sound notification
+watchfor /INFO]: (\w*)\[.*logged in/
+exec $script "$1 logged in" 1 $loggedIn
+threshold track_by=$1, type=limit, count=1, seconds=300
+
+# watchfor log outs and send them directly to pushover app
+watchfor /INFO]: (\w*) left the game/
+exec $script "$1 logged out" -1 $loggedIn
+threshold track_by=$1, type=limit, count=1, seconds=300

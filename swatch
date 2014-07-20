@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# Simple Log Watcher Program
+
+if [ -L $0 ]
+then
+   SWATCH_DIR=$(dirname `readlink -e $0`)
+else
+   SWATCH_DIR=$(dirname `echo $0`)
+fi
+
+source $SWATCH_DIR/.minecraft-pushrc
+
+ME=`whoami`
+as_user() {
+  if [ $ME == $USERNAME ] ; then
+    bash -c "$1"
+  else
+    su $USERNAME -s /bin/bash -c "$1"
+  fi
+}
+
+
+if [ $MINECRAFT_USER == ""  ]; then
+  echo "Please make the config files:"
+  echo "run 'cp .minecraft-pushrc.example .minecraft-pushrc'"
+  echo "run 'cp .mcswatchrc.example .mcswatchrc'"
+  exit 1
+fi
+
+
+export PUSHOVER_SCRIPT=$SWATCH_DIR/pushover.sh
+
+
+case "$1" in
+restart)
+ $0 stop
+ $0 start
+;;
+start)
+ as_user "swatch --daemon \
+  --tail-file=$MINECRAFT_LOG \
+  --config-file=$SWATCH_DIR/.mcswatchrc \
+  --pid-file=$SWATCH_DIR/.mcswatch.pid \
+  --tail-args='-F --lines=1'"
+;;
+stop)
+ as_user "kill `cat $SWATCH_DIR/.mcswatch.pid`"
+;;
+*)
+ echo "Usage: $0 {start|stop|restart}"
+;;
+esac
+exit 0
+
